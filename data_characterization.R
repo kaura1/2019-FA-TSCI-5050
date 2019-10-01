@@ -15,7 +15,7 @@ debug <- 0;
 
 # vector of additional packages to install, if needed. If none needed, should be
 # an empty string
-.packages <- c( '' );
+packages <- c('GGally','tableone','pander')
 
 # name of this script
 .currentscript <- "data_characterization.R"; 
@@ -29,7 +29,7 @@ debug <- 0;
 if(debug>0) source('./scripts/global.R',chdir=T) else {
   .junk<-capture.output(source('./scripts/global.R',chdir=T,echo=F))};
 # load any additional packages needed by just this script
-if(length(.packages) > 1 || .packages != '') instrequire(.packages);
+if(length(packages) > 1 || !identical(packages,'')) instrequire(packages);
 # start logging
 tself(scriptname=.currentscript);
 
@@ -52,6 +52,34 @@ tself(scriptname=.currentscript);
 
 #+ echo=F
 # characterization ----
+map0 <- autoread ('varmap.csv')
+dct0column <- make.unique(unlist (submulti(dct0$column,map0,method='startsends')));
+names (dat00) <-dct0column;
+set.seed(project_seed);
+#' 
+#' * Q: What does the command `nrow()` do?
+#'     * A: Gives the number sof rows in the data set
+#'          
+#'          
+#' * Q: What does the command `sample()` do? What are its first and second
+#'      arguments for?
+#'     * A: Take a sample from a vector of data
+#'          
+#'          
+#' * Q: If `foo` were a data frame, what might the expression `foo[bar,baz]` do,
+#'      what are the roles of `bar` and `baz` in that expression, and what would
+#'      it mean if you left either of them out of the expression?
+#'     * A: 'bar' and 'baz' are the row and column of the dataframe. foo[bar, baz]
+#'     will give the value in the corresponding row and column.If either of them ae left 
+#'     blank then, for example, if bar(row) is left blank, then all the observations in the 
+#'     column will show up.
+#'          
+#'          
+#' 
+dat01 <- dat00[sample(nrow(dat00), nrow(dat00)/2),];
+
+
+
 set.caption('Data Dictionary');
 set.alignment(row.names='right')
 .oldopt00 <- panderOptions('table.continues');
@@ -66,14 +94,14 @@ panderOptions('table.continues',.oldopt00);
 #' Predictors
 # Uncomment the below line after putting in the actual predictor column names
 # from your dat00
-#predictorvars <- c('FOO','BAR','BAZ','BAT');
+predictorvars <- c('time','id','sex');
 #' Outcomes
 # Uncomment the below line after putting in the actual outcome column names
 # from your dat00
-#outcomevars <- c('BAN','BAX');
+outcomevars <- c('albumin','copper','platelet');
 #' All analysis-ready variables
 # Uncomment the below line after predictorvars and outcomevars already exist
-#mainvars <- c(outcomevars, predictorvars);
+mainvars <- c(outcomevars, predictorvars);
 #' ### Scatterplot matrix (step 10)
 #' 
 #' To explore pairwise relationships between all variables of interest.
@@ -81,16 +109,41 @@ panderOptions('table.continues',.oldopt00);
 # Uncomment the below after mainvars already exists and you have chosen a 
 # discrete variable to take the place of VAR1 (note that you don't quote that
 # one)
-#ggpairs(dat00[,mainvars],mapping=aes(color=VAR1));
+ggpairs(dat00[,mainvars])
 #' ### Cohort Characterization (step 10)
 #' 
 #' To explore possible covariates
-# Uncomment the below code after mainvars exists and you have chosen a discrete
-# variable to take the place of VAR1 (this time you do quote it)
+#'Uncomment the below code after mainvars exists and you have chosen a discrete
+#'variable to take the place of VAR1 (this time you do quote it)
 #
-#pander(print(CreateTableOne(
-#  vars = setdiff(mainvars,'VAR1'),strata='VAR1',data = dat00
-#  , includeNA = T), printToggle=F), caption='Group Characterization');
+#'pander(print(CreateTableOne(vars = setdiff(mainvars,'VAR1'),strata=
+#'VAR1',data = dat00 , includeNA = T), printToggle=F), caption='Group Characterization');
+#'
+#Q: Which function 'owns' the argument `caption`? What value does that 
+#'      argument pass to that function?
+#'     * A: print
+#'          
+#'          
+#' * Q: Which function 'owns' the argument `printToggle`? What value does that 
+#'      argument pass to that function?
+#'     * A: CreateTableOne
+#'          
+#'          
+#' * Q: Which function 'owns' the argument `vars`? We can see that the value
+#'      this argument passes comes from the variable `mainvars`... so what is
+#'      the actual value that ends up getting passed to the function?
+#'     * A:?. OutcomeVars and Predictovars
+#'          
+#'          
+#' * Q: What is the _very first_ argument of `print()` in the expression below?
+#'      (copy-paste only that argument into your answer without including 
+#'      anything extra)
+#'     * A:(CreateTableOne(vars = mainvars, data = dat01, includeNA = TRUE)
+#'     , printToggle=FALSE)
+#'          
+pander(print(CreateTableOne(vars = mainvars, data = dat01, includeNA = TRUE)
+             , printToggle=FALSE)
+       , caption='Cohort Characterization');
 
 #' ### Data Analysis
 #' 
@@ -117,7 +170,7 @@ message('Done tsaving');
 #' ### Audit Trail
 #+ echo=F
 .wt <- walktrail();
-pander(.wt[order(.wt$sequence),-5],split.tables=Inf,justify='left',missing=''
-       ,row.names=F);
+#pander(.wt[order(.wt$sequence),-5],split.tables=Inf,justify='left',missing=''
+#       ,row.names=F);
 #+ echo=F,eval=F
 c()
