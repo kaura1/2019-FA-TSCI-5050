@@ -53,7 +53,7 @@ if(.debug>0) source('./scripts/global.R',chdir=T) else {
 #'     column will show up.
 #'          
 #'          
-#' 
+ for(ii in v(c_ordinal)) {dat00[[ii]] <- as.factor(dat00[,ii])}
 set.seed(project_seed);
 dat01 <- dat00[sample(nrow(dat00), nrow(dat00)/2),];
 
